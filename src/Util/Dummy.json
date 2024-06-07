@@ -1,0 +1,20 @@
+{
+  "user": {
+    "uid": "uid",
+    "displayName": "name.trim()",
+    "username": "name.trim().toLowerCase().split(' ').join('')",
+    "phone": "",
+    "bio": "",
+    "avatarImage": "",
+    "email": "email",
+    "token": "token"
+  },
+  "image": {
+    "id": "uuid.v4()",
+    "uid": "selector.uid",
+    "image": "url",
+    "like": 0,
+    "caption": "caption",
+    "user": "user"
+  }
+}
