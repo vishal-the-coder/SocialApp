@@ -9,7 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {ActivityIndicator, Button, Text, TextInput} from 'react-native-paper';
+import {
+  ActivityIndicator,
+  Button,
+  Divider,
+  Text,
+  TextInput,
+} from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useDispatch, useSelector} from 'react-redux';
 import * as Yup from 'yup';
@@ -45,8 +51,10 @@ const UpdateProfileScreen = ({navigation}) => {
   const [bio, setBio] = useState(selector.bio);
   const [displayName, setDisplayName] = useState(selector.displayName);
   const [avatarImage, setAvatarImage] = useState(selector.avatarImage);
-  const [imageData, setImageData] = useState('');
+  const [imageData, setImageData] = useState(selector.avatarImage);
   const [loader, setLoader] = useState(false);
+  const [imageUpdated, setImageUpdated] = useState(false);
+  const [profileUpdated, setProfileUpdated] = useState(false);
 
   const openCamera = async () => {
     try {
@@ -57,13 +65,19 @@ const UpdateProfileScreen = ({navigation}) => {
       });
       bottomSheet.current.close();
       setImageData(image);
-      console.log('this is image data from update profile:::', image);
+      setProfileUpdated(true);
+      // console.log('this is image data from update profile:::', image);
       // console.log('Camera Opened!!');
     } catch (error) {
       console.log('Error while open camera! ::', error);
     }
   };
-
+  const removeProfile = () => {
+    bottomSheet.current.close();
+    setImageData('');
+    setProfileUpdated(true);
+    // console.log('Profile Removed!');
+  };
   const openGallery = async () => {
     try {
       const image = await ImagePicker.openPicker({
@@ -72,8 +86,9 @@ const UpdateProfileScreen = ({navigation}) => {
         cropping: true,
       });
       bottomSheet.current.close();
-      console.log('This is image data from update profile :::', image);
+      // console.log('This is image data from update profile :::', image);
       setImageData(image);
+      setProfileUpdated(true);
     } catch (error) {
       console.log('Error while open Gallery! ::', error);
     }
@@ -86,7 +101,7 @@ const UpdateProfileScreen = ({navigation}) => {
       username: selector.username,
       phone: values.phone.trim(),
       bio: values.bio.trim(),
-      avatarImage: imageData ? url : selector.avatarImage,
+      avatarImage: imageUpdated ? url ?? '' : selector.avatarImage,
       email: selector.email,
       token: selector.token,
     };
@@ -187,6 +202,15 @@ const UpdateProfileScreen = ({navigation}) => {
                       Select from Gallery
                     </Text>
                   </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.modelInsideButton}
+                    onPress={removeProfile}>
+                    <MaterialIcons name="person" size={24} color={COLOR.MAIN} />
+                    <Text style={styles.modelInsideButtonText}>
+                      Remove Profile
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </BottomSheet>
               <TouchableOpacity
@@ -199,9 +223,7 @@ const UpdateProfileScreen = ({navigation}) => {
                   style={styles.avatarImage}
                   source={
                     imageData
-                      ? {uri: imageData.path}
-                      : values.avatarImage
-                      ? {uri: values.avatarImage}
+                      ? {uri: imageData.path ?? imageData}
                       : IMAGE.AVATAR
                   }
                 />
@@ -226,7 +248,10 @@ const UpdateProfileScreen = ({navigation}) => {
                 value={values.phone}
                 outlineColor={COLOR.MAIN}
                 activeOutlineColor={COLOR.MAIN}
-                onChangeText={handleChange('phone')}
+                onChangeText={() => {
+                  handleChange('phone');
+                  setProfileUpdated(true);
+                }}
                 onBlur={handleBlur('phone')}
                 style={styles.input}
                 keyboardType="phone-pad"
@@ -255,7 +280,10 @@ const UpdateProfileScreen = ({navigation}) => {
                 value={values.displayName}
                 outlineColor={COLOR.MAIN}
                 activeOutlineColor={COLOR.MAIN}
-                onChangeText={handleChange('displayName')}
+                onChangeText={() => {
+                  handleChange('displayName');
+                  setProfileUpdated(true);
+                }}
                 onBlur={handleBlur('displayName')}
                 style={styles.input}
                 mode="outlined"
@@ -283,7 +311,10 @@ const UpdateProfileScreen = ({navigation}) => {
                 value={values.bio}
                 outlineColor={COLOR.MAIN}
                 activeOutlineColor={COLOR.MAIN}
-                onChangeText={handleChange('bio')}
+                onChangeText={() => {
+                  handleChange('bio');
+                  setProfileUpdated(true);
+                }}
                 onBlur={handleBlur('bio')}
                 style={[styles.input, {height: windowWidth / 4}]}
                 contentStyle={{alignItems: 'center'}}
@@ -297,7 +328,10 @@ const UpdateProfileScreen = ({navigation}) => {
 
               <Button
                 mode="contained"
-                onPress={handleSubmit}
+                onPress={() => {
+                  setImageUpdated(true);
+                  handleSubmit();
+                }}
                 style={styles.button}>
                 {loader ? (
                   <ActivityIndicator color={COLOR.MINT_GREEN} size={'small'} />
@@ -358,12 +392,14 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   modelInsideButton: {
-    backgroundColor: COLOR.MINT_GREEN,
     alignItems: 'center',
-    margin: 10,
-    padding: 12,
-    borderRadius: 10,
-    paddingLeft: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: COLOR.MINT_GREEN,
+    marginHorizontal: 10,
+    marginVertical: 3,
+    paddingVertical: 5,
+
+    paddingLeft: 10,
     flexDirection: 'row',
   },
   modelInsideButtonText: {

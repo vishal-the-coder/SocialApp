@@ -114,12 +114,17 @@ const PostView = ({item}) => {
               style={styles.icon}
             />
           </TouchableOpacity>
-          <MaterialIcons
-            name="comment"
-            color={COLOR.DARK_GRAY}
-            size={25}
-            style={styles.icon}
-          />
+          <TouchableOpacity
+            onPress={() => {
+              bottomSheet.current.show();
+            }}>
+            <MaterialIcons
+              name="comment"
+              color={COLOR.DARK_GRAY}
+              size={25}
+              style={styles.icon}
+            />
+          </TouchableOpacity>
           <MaterialIcons
             name="send"
             color={COLOR.DARK_GRAY}
@@ -190,8 +195,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: COLOR.LIGHT_GRAY,
+    // borderBottomWidth: 1,
+    // borderBottomColor: COLOR.LIGHT_GRAY,
   },
   username: {
     color: COLOR.DARKER_GRAY,

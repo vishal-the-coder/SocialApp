@@ -1,12 +1,13 @@
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import React, {useEffect} from 'react';
-import {StatusBar, StyleSheet, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Image, StatusBar, StyleSheet, View} from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {
   ADD_SCREEN,
   CHAT_SCREEN,
   COMMENTS_SCREEN,
   HOME_SCREEN,
+  IMAGE,
   IMAGE_VIEW_SCREEN,
   OTHER_USER_PROFILE,
   PROFILE_SCREEN,
@@ -32,15 +33,12 @@ import CommentsScreen from '../Screen/CommentsScreen';
 import {windowWidth} from '../Util/Dimension';
 import UsersListScreen from '../Screen/UsersListScreen';
 import OtherUserProfile from '../Screen/OtherUserProfile';
+import {useSelector} from 'react-redux';
+import getUserData from '../Util/GetUserDataFB';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const Navigator = () => {
-  // useEffect(()=>{
-  //   StatusBar.setBarStyle('default');
-  //   StatusBar.setBackgroundColor('transparent')
-  //   StatusBar.setTranslucent(false)
-  // },[])
   return (
     // <>
     //   <StatusBar
@@ -130,6 +128,18 @@ const Navigator = () => {
   );
 };
 const TabNavigator = () => {
+  const selector = useSelector(state => state.user.users);
+  const [userImage, setUserImage] = useState('');
+  const fetch = async () => {
+    const user = await getUserData(selector.uid);
+    setUserImage(user.avatarImage);
+  };
+  useEffect(() => {
+    fetch();
+    //   StatusBar.setBarStyle('default');
+    //   StatusBar.setBackgroundColor('transparent')
+    //   StatusBar.setTranslucent(false)
+  }, []);
   return (
     <>
       <Tab.Navigator
@@ -160,6 +170,7 @@ const TabNavigator = () => {
             let style;
             let color = focused ? COLOR.MAIN : COLOR.MEDIUM_GRAY;
             let backgroundColor = focused ? COLOR.LIGHT_GRAY : COLOR.WHITE;
+            let borderColor = focused ? COLOR.MAIN : COLOR.WHITE;
 
             if (route.name === HOME_SCREEN) {
               iconName = 'home';
@@ -169,8 +180,6 @@ const TabNavigator = () => {
               iconName = 'add-circle';
             } else if (route.name === CHAT_SCREEN) {
               iconName = 'chat';
-            } else if (route.name === PROFILE_SCREEN) {
-              iconName = 'person';
             }
             return (
               <View
@@ -180,12 +189,38 @@ const TabNavigator = () => {
                   paddingVertical: 2,
                   paddingHorizontal: 10,
                 }}>
-                <MaterialIcons
-                  name={iconName}
-                  style={style}
-                  size={28}
-                  color={color}
-                />
+                {route.name === PROFILE_SCREEN ? (
+                  <View
+                    style={{
+                      borderColor: borderColor,
+                      borderWidth: 2,
+                      overflow: 'hidden',
+                      borderRadius: 100,
+                    }}>
+                    <Image
+                      style={{
+                        margin: 1,
+                        borderRadius: 100,
+                        width: windowWidth / 14,
+                        height: windowWidth / 14,
+                      }}
+                      source={
+                        userImage
+                          ? {
+                              uri: userImage,
+                            }
+                          : IMAGE.AVATAR
+                      }
+                    />
+                  </View>
+                ) : (
+                  <MaterialIcons
+                    name={iconName}
+                    style={style}
+                    size={32}
+                    color={color}
+                  />
+                )}
               </View>
             );
           },
@@ -193,7 +228,7 @@ const TabNavigator = () => {
         <Tab.Screen name={HOME_SCREEN} component={HomeScreen} />
         <Tab.Screen name={SEARCH_SCREEN} component={SearchScreen} />
         <Tab.Screen name={ADD_SCREEN} component={AddImageScreen} />
-        <Tab.Screen name={CHAT_SCREEN} component={ChatScreen} />
+        {/* <Tab.Screen name={CHAT_SCREEN} component={ChatScreen} /> */}
         <Tab.Screen name={PROFILE_SCREEN} component={ProfileScreen} />
       </Tab.Navigator>
     </>

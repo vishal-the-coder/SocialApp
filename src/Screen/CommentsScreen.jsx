@@ -22,7 +22,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const CommentScreen = ({item}) => {
   const toast = useToast();
-  console.log('this is item data from comment screen::', item.comments);
   const selector = useSelector(state => state.user.users);
   const [userId, setUserId] = useState('');
   const [userAvatar, setUserAvatar] = useState('');
@@ -30,6 +29,7 @@ const CommentScreen = ({item}) => {
   const [newComment, setNewComment] = useState('');
   const [loader, setLoader] = useState(false);
   const [dataLoader, setDataLoader] = useState(false);
+  const [commentUpdated, setCommentUpdated] = useState(false);
   // const [liked, setLiked] = useState(false);
   // const [likeCount, setLikeCount] = useState(item.comments.likes || 0);
   // const handleLikePress = () => {
@@ -45,21 +45,26 @@ const CommentScreen = ({item}) => {
   useEffect(() => {
     const fetchUserData = async () => {
       const updatedComments = [];
-      setDataLoader(true);
-      for (const comment of item.comments) {
-        const user = await getUserData(comment.uid);
-        updatedComments.push({...comment, user});
+      try {
+        setDataLoader(true);
+        for (const comment of item.comments) {
+          const user = await getUserData(comment.uid);
+          updatedComments.push({...comment, user});
+        }
+        setDataLoader(false);
+        setCommentsList(updatedComments);
+
+      } catch (error) {
+        console.log('Error while fetch comment data :: ', error);
       }
-      setCommentsList(updatedComments);
-      setDataLoader(false);
     };
 
     fetchUserData();
-  }, [loader, commentsList]);
+  }, [commentUpdated]);
   const postComment = async () => {
-    const tempComments = [...item.comments]; // Creating a copy of the comments array
-    console.log('temp comments from comment screen ::: ', tempComments);
-    console.log('comments list ::: ', commentsList);
+    const tempComments = item.comments;
+    // console.log('temp comments from comment screen ::: ', tempComments);
+    // console.log('comments list ::: ', commentsList);
     const commentObj = {
       id: uuid.v4(),
       uid: userId,
@@ -72,19 +77,21 @@ const CommentScreen = ({item}) => {
     console.log('updated comment array!!::', tempComments);
     try {
       setLoader(true);
-      newComment.trim().length > 0 &&
-        (await firestore()
+      if (newComment.trim().length > 0) {
+        await firestore()
           .collection(POSTS)
           .doc(item.id)
-          .update({comments: tempComments})
-          .then(() => {
-            setLoader(false);
-            toast.show('post uploaded');
-            // Update the comments list in the state after Firestore update is successful
-            setCommentsList(tempComments);
-          }));
-      console.log('Comment Added!');
+          .update({comments: tempComments});
+        toast.show('comment post uploaded');
+        console.log('Comment Added!');
+        setCommentUpdated(!commentUpdated);
+        setLoader(false);
+      } else {
+        toast.show('Comment Invalid');
+        setLoader(false);
+      }
     } catch (error) {
+      setLoader(false);
       console.log('Error while updating comment ::: ', error);
     }
     setNewComment('');
@@ -140,7 +147,7 @@ const CommentScreen = ({item}) => {
       <View style={{padding: 2}}></View>
       {dataLoader ? (
         <View style={styles.commentContainer}>
-          <ActivityIndicator size="small" />
+          <ActivityIndicator size="large" color={COLOR.MAIN} />
         </View>
       ) : (
         <FlatList
@@ -250,8 +257,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   commentContainer: {
+    flex: 1,
     flexDirection: 'row',
-    backgroundColor: COLOR.GRAY,
+    justifyContent: 'center',
     padding: 10,
   },
   userImage: {
